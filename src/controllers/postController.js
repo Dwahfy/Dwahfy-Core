@@ -10,6 +10,7 @@ const {
 const { requireAccountToken } = require('../utils/authToken');
 const { isBadWordsEnabled, censorBadWords } = require('../utils/badWords');
 const { getBadWordsEnabledByAccountId } = require('../models/profileModel');
+const { createNotification } = require('../models/notificationModel');
 
 const MAX_CONTENT_LENGTH = 1000;
 const DEFAULT_LIMIT = 20;
@@ -148,6 +149,11 @@ const createReplyHandler = async (req, res) => {
 
     // Store raw content — censorship is applied at read time
     const reply = await createPost(auth.decoded.accountId, content, parentPostId);
+
+    if (parent.author_id !== auth.decoded.accountId) {
+      await createNotification(parent.author_id, auth.decoded.accountId, 'reply', reply.id);
+    }
+
     const fullReply = await getPostWithCounts(reply.id);
     const enabled = await resolveViewerCensorship(auth.decoded.accountId);
     return res.status(201).json({ reply: censorPost(fullReply, enabled) });
