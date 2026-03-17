@@ -151,7 +151,11 @@ const createReplyHandler = async (req, res) => {
     const reply = await createPost(auth.decoded.accountId, content, parentPostId);
 
     if (parent.author_id !== auth.decoded.accountId) {
-      await createNotification(parent.author_id, auth.decoded.accountId, 'reply', reply.id);
+      try {
+        await createNotification(parent.author_id, auth.decoded.accountId, 'reply', reply.id);
+      } catch (err) {
+        console.error('Failed to create reply notification:', err.message);
+      }
     }
 
     const fullReply = await getPostWithCounts(reply.id);

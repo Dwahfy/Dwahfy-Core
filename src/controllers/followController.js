@@ -35,7 +35,11 @@ const followHandler = async (req, res) => {
 
   const wasInserted = await followUser(auth.decoded.accountId, target.id);
   if (wasInserted) {
-    await createNotification(target.id, auth.decoded.accountId, 'follow');
+    try {
+      await createNotification(target.id, auth.decoded.accountId, 'follow');
+    } catch (err) {
+      console.error('Failed to create follow notification:', err.message);
+    }
   }
   const followerCount = await getFollowerCount(target.id);
   const followingCount = await getFollowingCount(target.id);
