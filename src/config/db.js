@@ -224,13 +224,17 @@ const initDb = async () => {
       actor_id     BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
       type         TEXT NOT NULL CHECK (type IN ('follow', 'reply')),
       post_id      BIGINT REFERENCES posts(id) ON DELETE CASCADE,
-      read         BOOLEAN NOT NULL DEFAULT FALSE,
+      is_read      BOOLEAN NOT NULL DEFAULT FALSE,
       created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
   await pool.query(`
     CREATE INDEX IF NOT EXISTS notifications_recipient_idx
       ON notifications(recipient_id);
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS notifications_recipient_read_idx
+      ON notifications(recipient_id, is_read);
   `);
   console.log('Postgres connected');
 };

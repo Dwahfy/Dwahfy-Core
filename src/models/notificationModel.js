@@ -13,7 +13,7 @@ const listNotifications = async (accountId) => {
     `SELECT
        n.id,
        n.type,
-       n.read,
+       n.is_read AS read,
        n.created_at,
        n.post_id,
        n.actor_id,
@@ -32,10 +32,19 @@ const listNotifications = async (accountId) => {
 
 const markAllRead = async (accountId) => {
   await pool.query(
-    `UPDATE notifications SET read = TRUE
-     WHERE recipient_id = $1 AND read = FALSE`,
+    `UPDATE notifications SET is_read = TRUE
+     WHERE recipient_id = $1 AND is_read = FALSE`,
     [accountId]
   );
 };
 
-module.exports = { createNotification, listNotifications, markAllRead };
+const getUnreadCount = async (accountId) => {
+  const result = await pool.query(
+    `SELECT COUNT(*)::int AS count FROM notifications
+     WHERE recipient_id = $1 AND is_read = FALSE`,
+    [accountId]
+  );
+  return result.rows[0].count;
+};
+
+module.exports = { createNotification, listNotifications, markAllRead, getUnreadCount };

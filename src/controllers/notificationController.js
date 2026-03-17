@@ -1,5 +1,5 @@
 const { requireAccountToken } = require('../utils/authToken');
-const { listNotifications, markAllRead } = require('../models/notificationModel');
+const { listNotifications, markAllRead, getUnreadCount } = require('../models/notificationModel');
 
 const getNotificationsHandler = async (req, res) => {
   try {
@@ -8,8 +8,10 @@ const getNotificationsHandler = async (req, res) => {
       return res.status(auth.error.status).json({ message: auth.error.message });
     }
 
-    const notifications = await listNotifications(auth.decoded.accountId);
-    const unreadCount = notifications.filter((n) => !n.read).length;
+    const [notifications, unreadCount] = await Promise.all([
+      listNotifications(auth.decoded.accountId),
+      getUnreadCount(auth.decoded.accountId),
+    ]);
     return res.json({ notifications, unreadCount });
   } catch (error) {
     return res
