@@ -1,10 +1,11 @@
 const { pool } = require('../config/db');
 
 const followUser = async (followerId, followingId) => {
-  await pool.query(
+  const result = await pool.query(
     `INSERT INTO follows (follower_id, following_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
     [followerId, followingId]
   );
+  return result.rowCount > 0;
 };
 
 const unfollowUser = async (followerId, followingId) => {

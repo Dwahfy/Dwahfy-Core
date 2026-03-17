@@ -7,6 +7,7 @@ const {
   getFollowerCount,
   getFollowingCount,
 } = require('../models/followModel');
+const { createNotification } = require('../models/notificationModel');
 const jwt = require('jsonwebtoken');
 
 const getOptionalAccountId = (req) => {
@@ -32,7 +33,10 @@ const followHandler = async (req, res) => {
     return res.status(400).json({ message: 'You cannot follow yourself' });
   }
 
-  await followUser(auth.decoded.accountId, target.id);
+  const wasInserted = await followUser(auth.decoded.accountId, target.id);
+  if (wasInserted) {
+    await createNotification(target.id, auth.decoded.accountId, 'follow');
+  }
   const followerCount = await getFollowerCount(target.id);
   const followingCount = await getFollowingCount(target.id);
   res.json({ isFollowing: true, followerCount, followingCount });
