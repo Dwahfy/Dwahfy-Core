@@ -122,7 +122,7 @@ const listReplies = async (parentPostId, limit) => {
       profiles.avatar_url AS author_avatar_url,
       COALESCE(like_counts.like_count, 0) AS like_count,
       COALESCE(dislike_counts.dislike_count, 0) AS dislike_count,
-      0::int AS reply_count
+      COALESCE(reply_counts.reply_count, 0) AS reply_count
     FROM posts
     JOIN accounts ON accounts.id = posts.author_id
     LEFT JOIN profiles ON profiles.account_id = accounts.id
@@ -136,6 +136,11 @@ const listReplies = async (parentPostId, limit) => {
       FROM post_reactions
       WHERE post_id = posts.id AND reaction = 'dislike'
     ) dislike_counts ON true
+    LEFT JOIN LATERAL (
+      SELECT COUNT(*)::int AS reply_count
+      FROM posts AS child
+      WHERE child.parent_post_id = posts.id
+    ) reply_counts ON true
     WHERE posts.parent_post_id = $1
     ORDER BY posts.created_at ASC
     LIMIT $2

@@ -133,10 +133,6 @@ const createReplyHandler = async (req, res) => {
     if (!parent) {
       return res.status(404).json({ message: 'Post not found' });
     }
-    if (parent.parent_post_id) {
-      return res.status(400).json({ message: 'Replies can only target posts' });
-    }
-
     const content = normalizeContent(req.body.content);
     if (!content) {
       return res.status(400).json({ message: 'Reply content is required' });
