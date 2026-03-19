@@ -28,3 +28,6 @@ build/
 Thumbs.db
 
 .claude
+
+docs/
+otp-playground.js

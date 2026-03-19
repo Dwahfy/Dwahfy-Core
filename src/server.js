@@ -16,6 +16,7 @@ const followRoutes = require('./routes/follows');
 const userRoutes = require('./routes/users');
 const notificationRoutes = require('./routes/notifications');
 const gdprRoutes = require('./routes/gdpr');
+const twoFactorRoutes = require('./routes/twoFactor');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -36,6 +37,7 @@ app.use('/follows', followRoutes);
 app.use('/users', userRoutes);
 app.use('/notifications', notificationRoutes);
 app.use('/auth', gdprRoutes);
+app.use('/auth', twoFactorRoutes);
 app.use('/upload', uploadRoutes);
 
 app.get('/', (req, res) => {

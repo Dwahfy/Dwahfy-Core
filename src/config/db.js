@@ -236,6 +236,30 @@ const initDb = async () => {
     CREATE INDEX IF NOT EXISTS notifications_recipient_read_idx
       ON notifications(recipient_id, is_read);
   `);
+  await pool.query(`
+    ALTER TABLE accounts
+    ADD COLUMN IF NOT EXISTS totp_secret TEXT;
+  `);
+  await pool.query(`
+    ALTER TABLE accounts
+    ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+  `);
+  await pool.query(`
+    ALTER TABLE accounts
+    ADD COLUMN IF NOT EXISTS totp_last_verified_at TIMESTAMPTZ;
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS totp_backup_codes (
+      id BIGSERIAL PRIMARY KEY,
+      account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      code_hash TEXT NOT NULL,
+      used_at TIMESTAMPTZ
+    );
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_totp_backup_codes_account_id
+      ON totp_backup_codes(account_id);
+  `);
   console.log('Postgres connected');
 };
 
