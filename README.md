@@ -60,35 +60,6 @@ When running with Docker Compose, the app uses internal service names for DBs. I
 
 - `GET /` basic health response
 - `GET /health` returns `{"status":"ok"}`
-- `POST /auth/start` begin signup with email-only (sends OTP)
-- `POST /auth/verify-otp` verify OTP and get register token
-- `POST /auth/register` complete signup with username + password
-- `POST /auth/login` login with username + password
-- `POST /auth/accounts` list accounts for an identity token
-- `POST /auth/switch` switch accounts using an identity token
-- `POST /auth/logout` revoke the current JWT (in-memory)
-- `POST /auth/change-password` change password for the current account
-- `POST /auth/request-email-change` send OTP to a new email address
-- `POST /auth/confirm-email-change` confirm email change with OTP
-- `POST /posts` create a text post
-- `GET /posts` list recent posts
-- `POST /posts/:postId/replies` reply to a post
-- `GET /posts/:postId/replies` list replies
-- `POST /posts/:postId/react` like or dislike a post
-- `GET /profile` get current profile
-- `PATCH /profile` update current profile
-- `GET /profile/:username` public profile by username
-- `GET /badges` list available badges
-- `GET /admin/badges` list badges (admin)
-- `POST /admin/badges` create badge (admin)
-- `PATCH /admin/badges/:badgeId` update badge (admin)
-- `DELETE /admin/badges/:badgeId` delete badge (admin)
-- `GET /admin/users` list all users (admin)
-- `PATCH /admin/users/:accountId/admin` toggle admin status (admin)
-- `DELETE /admin/users/:accountId` delete account (admin)
-- `GET /admin/posts` list all posts (admin)
-- `DELETE /admin/posts/:postId` delete post (admin)
-- `GET /admin/posts/stats` dashboard stats (admin)
 
 ## Admin access
 
