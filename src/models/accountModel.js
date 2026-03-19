@@ -111,6 +111,16 @@ const updateAccountIdentity = async (accountId, identityId) => {
   ]);
 };
 
+const deleteAccountById = async (accountId) => {
+  const result = await pool.query('DELETE FROM accounts WHERE id = $1 RETURNING id', [accountId]);
+  return result.rowCount > 0;
+};
+
+const countAccountsByIdentityId = async (identityId) => {
+  const result = await pool.query('SELECT COUNT(*) FROM accounts WHERE identity_id = $1', [identityId]);
+  return parseInt(result.rows[0].count, 10);
+};
+
 module.exports = {
   getAccountsByIdentityId,
   getAccountByUsername,
@@ -122,4 +132,6 @@ module.exports = {
   getAccountPasswordById,
   updatePassword,
   updateAccountIdentity,
+  deleteAccountById,
+  countAccountsByIdentityId,
 };

@@ -21,7 +21,12 @@ const getIdentityById = async (identityId) => {
   return result.rows[0] || null;
 };
 
+const deleteIdentityById = async (identityId) => {
+  await pool.query('DELETE FROM identities WHERE id = $1', [identityId]);
+};
+
 module.exports = {
   upsertIdentityByEmail,
   getIdentityById,
+  deleteIdentityById,
 };
