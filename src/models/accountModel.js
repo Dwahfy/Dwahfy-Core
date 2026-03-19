@@ -16,7 +16,7 @@ const getAccountsByIdentityId = async (identityId) => {
 const getAccountByUsername = async (username) => {
   const result = await pool.query(
     `
-    SELECT accounts.id, accounts.username, accounts.password_hash,
+    SELECT accounts.id, accounts.username, accounts.password_hash, accounts.is_admin,
       identities.id AS identity_id, identities.email
     FROM accounts
     JOIN identities ON identities.id = accounts.identity_id
@@ -44,7 +44,7 @@ const getAccountById = async (accountId) => {
 const getAccountWithIdentityById = async (accountId, identityId) => {
   const result = await pool.query(
     `
-    SELECT accounts.id, accounts.username, identities.email,
+    SELECT accounts.id, accounts.username, accounts.is_admin, identities.email,
       identities.id AS identity_id
     FROM accounts
     JOIN identities ON identities.id = accounts.identity_id

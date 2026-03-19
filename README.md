@@ -51,6 +51,8 @@ These are in `ex.env`:
 - `SMTP_*` (optional SMTP config for OTP emails)
 - `CORS_ORIGIN` (frontend URL, for example `http://localhost:3000`)
 - `BAD_WORDS_ENABLED` (set to `false` to disable bad-word filtering)
+- `ADMIN_API_KEY` (required for all `/admin/*` endpoints — generate with `bash scripts/gen-admin-key.sh`)
+- `BOOTSTRAP_ADMIN_USERNAME` (optional — promotes this username to admin on startup, see `docs/admin.md`)
 
 When running with Docker Compose, the app uses internal service names for DBs. If you run the server directly on your host, keep using `localhost` in the env file.
 
@@ -81,10 +83,24 @@ When running with Docker Compose, the app uses internal service names for DBs. I
 - `POST /admin/badges` create badge (admin)
 - `PATCH /admin/badges/:badgeId` update badge (admin)
 - `DELETE /admin/badges/:badgeId` delete badge (admin)
+- `GET /admin/users` list all users (admin)
+- `PATCH /admin/users/:accountId/admin` toggle admin status (admin)
+- `DELETE /admin/users/:accountId` delete account (admin)
+- `GET /admin/posts` list all posts (admin)
+- `DELETE /admin/posts/:postId` delete post (admin)
+- `GET /admin/posts/stats` dashboard stats (admin)
 
 ## Admin access
 
 Set `ADMIN_API_KEY` and send it via `X-Admin-Key` or `Authorization: Bearer <key>` for `/admin/*` routes.
+
+Generate a key:
+
+```bash
+bash scripts/gen-admin-key.sh
+```
+
+For first admin setup and full admin documentation see `docs/admin.md`.
 
 ## Generate a JWT (dev)
 

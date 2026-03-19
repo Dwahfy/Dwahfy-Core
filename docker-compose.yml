@@ -5,9 +5,13 @@ services:
       - .env
     ports:
       - "3000:3000"
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - backend
     depends_on:
       postgres:
-        condition: service_healthy     # ← this is the key change
+        condition: service_healthy
 
   postgres:
     image: postgres:16
@@ -19,13 +23,19 @@ services:
       - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
     restart: unless-stopped
-    healthcheck:                           # ← add this block
+    healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d myapp_dev"]
       interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 10s                    # gives extra time for init
+      start_period: 10s
+
+networks:
+  backend:
 
 volumes:
   postgres_data:
+  uploads:

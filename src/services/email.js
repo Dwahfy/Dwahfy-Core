@@ -27,13 +27,14 @@ const buildTransport = () => {
 };
 
 const sendEmail = async ({ to, subject, text }) => {
+  if (NODE_ENV !== 'production') {
+    console.log(`\n[DEV] Email to: ${to}\n[DEV] Subject: ${subject}\n[DEV] Body: ${text}\n`);
+    return;
+  }
+
   const transport = buildTransport();
   if (!transport) {
-    if (NODE_ENV === 'production') {
-      throw new Error('SMTP is not configured for production');
-    }
-    console.log(`OTP for ${to}: ${text}`);
-    return;
+    throw new Error('SMTP is not configured for production');
   }
 
   const from = SMTP_FROM || SMTP_USER;

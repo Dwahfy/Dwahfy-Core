@@ -13,11 +13,19 @@ This is a lightweight status list to track what is complete and what is next.
 - Email change with OTP verification
 - Password reset flow (forgot password)
 
-### In progress
+### Completed (continued)
 
-- Text-only posts (MVP)
+- Text-only posts
 - Post replies (single-level)
 - Likes and dislikes
+- Badge system (public listing + admin CRUD)
+- Avatar and profile image uploads
+- Admin user management (list, toggle admin, delete)
+- Admin post moderation (list all, delete)
+- Admin dashboard stats
+- Bootstrap admin via env var (`BOOTSTRAP_ADMIN_USERNAME`)
+- Admin key generation script (`scripts/gen-admin-key.sh`)
+- `isAdmin` claim in JWT
 
 ### Planned
 
