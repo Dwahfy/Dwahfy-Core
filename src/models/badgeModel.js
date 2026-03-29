@@ -75,6 +75,47 @@ const getBadgeBySlug = async (slug) => {
   return result.rows[0] || null;
 };
 
+const grantBadge = async (accountId, badgeId) => {
+  await pool.query(
+    `
+    INSERT INTO user_badges (account_id, badge_id)
+    VALUES ($1, $2)
+    ON CONFLICT DO NOTHING
+  `,
+    [accountId, badgeId]
+  );
+};
+
+const revokeBadge = async (accountId, badgeId) => {
+  const result = await pool.query(
+    `DELETE FROM user_badges WHERE account_id = $1 AND badge_id = $2`,
+    [accountId, badgeId]
+  );
+  return result.rowCount > 0;
+};
+
+const listBadgesByAccount = async (accountId) => {
+  const result = await pool.query(
+    `
+    SELECT badges.id, badges.slug, badges.name, badges.image_url, badges.created_at, badges.updated_at
+    FROM badges
+    JOIN user_badges ON user_badges.badge_id = badges.id
+    WHERE user_badges.account_id = $1
+    ORDER BY user_badges.granted_at ASC
+  `,
+    [accountId]
+  );
+  return result.rows;
+};
+
+const hasAccountBadge = async (accountId, badgeId) => {
+  const result = await pool.query(
+    `SELECT 1 FROM user_badges WHERE account_id = $1 AND badge_id = $2 LIMIT 1`,
+    [accountId, badgeId]
+  );
+  return result.rowCount > 0;
+};
+
 module.exports = {
   listBadges,
   getBadgeById,
@@ -82,4 +123,8 @@ module.exports = {
   updateBadge,
   deleteBadge,
   getBadgeBySlug,
+  grantBadge,
+  revokeBadge,
+  listBadgesByAccount,
+  hasAccountBadge,
 };

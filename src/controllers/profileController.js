@@ -6,7 +6,8 @@ const {
   getPublicProfileByUsername,
 } = require('../models/profileModel');
 const { getAccountById, getAccountByUsername } = require('../models/accountModel');
-const { getBadgeById } = require('../models/badgeModel');
+const { getBadgeById, hasAccountBadge } = require('../models/badgeModel');
+const { getFollowerCount, getFollowingCount } = require('../models/followModel');
 
 const MAX_DISPLAY_NAME_LENGTH = 50;
 const MAX_BIO_LENGTH = 160;
@@ -160,6 +161,10 @@ const updateProfileHandler = async (req, res) => {
       if (!badgeExists) {
         return res.status(400).json({ message: 'Badge not found' });
       }
+      const owned = await hasAccountBadge(account.id, badgeId);
+      if (!owned) {
+        return res.status(403).json({ message: 'You have not earned this badge' });
+      }
     }
 
     const validationError = validateProfile({
@@ -230,6 +235,8 @@ const getPublicProfileHandler = async (req, res) => {
             imageUrl: profile.badge_image_url,
           }
         : null;
+    const followerCount = await getFollowerCount(account.id);
+    const followingCount = await getFollowingCount(account.id);
     return res.json({
       profile: {
         username: account.username,
@@ -238,6 +245,8 @@ const getPublicProfileHandler = async (req, res) => {
         avatarUrl: profile.avatar_url,
         links: profile.links || [],
         badge,
+        followerCount,
+        followingCount,
       },
     });
   } catch (error) {

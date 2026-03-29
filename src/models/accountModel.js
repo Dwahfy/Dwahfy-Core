@@ -16,8 +16,8 @@ const getAccountsByIdentityId = async (identityId) => {
 const getAccountByUsername = async (username) => {
   const result = await pool.query(
     `
-    SELECT accounts.id, accounts.username, accounts.password_hash,
-      identities.id AS identity_id, identities.email
+    SELECT accounts.id, accounts.username, accounts.password_hash, accounts.is_admin,
+      accounts.totp_enabled, identities.id AS identity_id, identities.email
     FROM accounts
     JOIN identities ON identities.id = accounts.identity_id
     WHERE accounts.username = $1
@@ -44,7 +44,7 @@ const getAccountById = async (accountId) => {
 const getAccountWithIdentityById = async (accountId, identityId) => {
   const result = await pool.query(
     `
-    SELECT accounts.id, accounts.username, identities.email,
+    SELECT accounts.id, accounts.username, accounts.is_admin, identities.email,
       identities.id AS identity_id
     FROM accounts
     JOIN identities ON identities.id = accounts.identity_id
@@ -111,6 +111,16 @@ const updateAccountIdentity = async (accountId, identityId) => {
   ]);
 };
 
+const deleteAccountById = async (accountId) => {
+  const result = await pool.query('DELETE FROM accounts WHERE id = $1 RETURNING id', [accountId]);
+  return result.rowCount > 0;
+};
+
+const countAccountsByIdentityId = async (identityId) => {
+  const result = await pool.query('SELECT COUNT(*) FROM accounts WHERE identity_id = $1', [identityId]);
+  return parseInt(result.rows[0].count, 10);
+};
+
 module.exports = {
   getAccountsByIdentityId,
   getAccountByUsername,
@@ -122,4 +132,6 @@ module.exports = {
   getAccountPasswordById,
   updatePassword,
   updateAccountIdentity,
+  deleteAccountById,
+  countAccountsByIdentityId,
 };

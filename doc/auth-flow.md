@@ -73,6 +73,13 @@ Password resets are verified with an OTP sent to the email on the account:
 1) `POST /auth/request-password-reset` with `email` + `username`
 2) `POST /auth/confirm-password-reset` with `email`, `username`, `otp`, and `newPassword`
 
+### Account rights (GDPR)
+
+- `GET /auth/export-data` — download all your data as a JSON file
+- `POST /auth/delete-account` with `password` — permanently delete your account (and identity if it's the last account)
+
+See [gdpr.md](gdpr.md) for full details.
+
 ### Notes
 
 - OTPs are single-use and expire after 10 minutes.

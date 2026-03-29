@@ -73,6 +73,10 @@ const initDb = async () => {
     );
   `);
   await pool.query(`
+    ALTER TABLE accounts
+    ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT FALSE;
+  `);
+  await pool.query(`
     ALTER TABLE profiles
     ADD COLUMN IF NOT EXISTS bad_words_enabled BOOLEAN NOT NULL DEFAULT TRUE;
   `);
@@ -181,12 +185,80 @@ const initDb = async () => {
       ON post_reactions(account_id);
   `);
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS user_badges (
+      account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      badge_id BIGINT NOT NULL REFERENCES badges(id) ON DELETE CASCADE,
+      granted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (account_id, badge_id)
+    );
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS user_badges_account_idx ON user_badges(account_id);
+  `);
+  await pool.query(`
     CREATE INDEX IF NOT EXISTS email_change_otps_account_idx
       ON email_change_otps(account_id);
   `);
   await pool.query(`
     CREATE INDEX IF NOT EXISTS password_reset_otps_account_idx
       ON password_reset_otps(account_id);
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS follows (
+      follower_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      following_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (follower_id, following_id)
+    );
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS follows_follower_idx ON follows(follower_id);
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS follows_following_idx ON follows(following_id);
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS notifications (
+      id           BIGSERIAL PRIMARY KEY,
+      recipient_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      actor_id     BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      type         TEXT NOT NULL CHECK (type IN ('follow', 'reply')),
+      post_id      BIGINT REFERENCES posts(id) ON DELETE CASCADE,
+      is_read      BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS notifications_recipient_idx
+      ON notifications(recipient_id);
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS notifications_recipient_read_idx
+      ON notifications(recipient_id, is_read);
+  `);
+  await pool.query(`
+    ALTER TABLE accounts
+    ADD COLUMN IF NOT EXISTS totp_secret TEXT;
+  `);
+  await pool.query(`
+    ALTER TABLE accounts
+    ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+  `);
+  await pool.query(`
+    ALTER TABLE accounts
+    ADD COLUMN IF NOT EXISTS totp_last_verified_at TIMESTAMPTZ;
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS totp_backup_codes (
+      id BIGSERIAL PRIMARY KEY,
+      account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+      code_hash TEXT NOT NULL,
+      used_at TIMESTAMPTZ
+    );
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_totp_backup_codes_account_id
+      ON totp_backup_codes(account_id);
   `);
   console.log('Postgres connected');
 };

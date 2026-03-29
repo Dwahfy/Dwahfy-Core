@@ -5,7 +5,10 @@ const {
   createBadge,
   updateBadge,
   deleteBadge,
+  grantBadge,
+  revokeBadge,
 } = require('../models/badgeModel');
+const { getAccountByUsername } = require('../models/accountModel');
 
 const MAX_SLUG_LENGTH = 40;
 const MAX_NAME_LENGTH = 80;
@@ -127,9 +130,68 @@ const deleteBadgeHandler = async (req, res) => {
   }
 };
 
+const grantBadgeHandler = async (req, res) => {
+  try {
+    const badgeId = Number.parseInt(req.params.badgeId, 10);
+    if (!badgeId || Number.isNaN(badgeId)) {
+      return res.status(400).json({ message: 'Valid badgeId is required' });
+    }
+
+    const username = (req.body.username || '').trim().toLowerCase();
+    if (!username) {
+      return res.status(400).json({ message: 'username is required' });
+    }
+
+    const badge = await getBadgeById(badgeId);
+    if (!badge) {
+      return res.status(404).json({ message: 'Badge not found' });
+    }
+
+    const account = await getAccountByUsername(username);
+    if (!account) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    await grantBadge(account.id, badgeId);
+    return res.json({ message: `Badge granted to ${account.username}` });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: `Failed to grant badge: ${error.message}` });
+  }
+};
+
+const revokeBadgeHandler = async (req, res) => {
+  try {
+    const badgeId = Number.parseInt(req.params.badgeId, 10);
+    if (!badgeId || Number.isNaN(badgeId)) {
+      return res.status(400).json({ message: 'Valid badgeId is required' });
+    }
+
+    const username = (req.body.username || '').trim().toLowerCase();
+    if (!username) {
+      return res.status(400).json({ message: 'username is required' });
+    }
+
+    const account = await getAccountByUsername(username);
+    if (!account) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    await revokeBadge(account.id, badgeId);
+    return res.json({ message: `Badge revoked from ${account.username}` });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: `Failed to revoke badge: ${error.message}` });
+  }
+};
+
 module.exports = {
   listBadgesHandler,
   createBadgeHandler,
   updateBadgeHandler,
   deleteBadgeHandler,
+  grantBadgeHandler,
+  revokeBadgeHandler,
 };

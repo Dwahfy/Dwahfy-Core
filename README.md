@@ -51,6 +51,8 @@ These are in `ex.env`:
 - `SMTP_*` (optional SMTP config for OTP emails)
 - `CORS_ORIGIN` (frontend URL, for example `http://localhost:3000`)
 - `BAD_WORDS_ENABLED` (set to `false` to disable bad-word filtering)
+- `ADMIN_API_KEY` (required for all `/admin/*` endpoints — generate with `bash scripts/gen-admin-key.sh`)
+- `BOOTSTRAP_ADMIN_USERNAME` (optional — promotes this username to admin on startup, see `docs/admin.md`)
 
 When running with Docker Compose, the app uses internal service names for DBs. If you run the server directly on your host, keep using `localhost` in the env file.
 
@@ -58,33 +60,18 @@ When running with Docker Compose, the app uses internal service names for DBs. I
 
 - `GET /` basic health response
 - `GET /health` returns `{"status":"ok"}`
-- `POST /auth/start` begin signup with email-only (sends OTP)
-- `POST /auth/verify-otp` verify OTP and get register token
-- `POST /auth/register` complete signup with username + password
-- `POST /auth/login` login with username + password
-- `POST /auth/accounts` list accounts for an identity token
-- `POST /auth/switch` switch accounts using an identity token
-- `POST /auth/logout` revoke the current JWT (in-memory)
-- `POST /auth/change-password` change password for the current account
-- `POST /auth/request-email-change` send OTP to a new email address
-- `POST /auth/confirm-email-change` confirm email change with OTP
-- `POST /posts` create a text post
-- `GET /posts` list recent posts
-- `POST /posts/:postId/replies` reply to a post
-- `GET /posts/:postId/replies` list replies
-- `POST /posts/:postId/react` like or dislike a post
-- `GET /profile` get current profile
-- `PATCH /profile` update current profile
-- `GET /profile/:username` public profile by username
-- `GET /badges` list available badges
-- `GET /admin/badges` list badges (admin)
-- `POST /admin/badges` create badge (admin)
-- `PATCH /admin/badges/:badgeId` update badge (admin)
-- `DELETE /admin/badges/:badgeId` delete badge (admin)
 
 ## Admin access
 
 Set `ADMIN_API_KEY` and send it via `X-Admin-Key` or `Authorization: Bearer <key>` for `/admin/*` routes.
+
+Generate a key:
+
+```bash
+bash scripts/gen-admin-key.sh
+```
+
+For first admin setup and full admin documentation see `docs/admin.md`.
 
 ## Generate a JWT (dev)
 

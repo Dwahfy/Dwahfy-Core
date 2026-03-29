@@ -10,9 +10,9 @@ const isBadWordsEnabled = () => {
   return !['0', 'false', 'off', 'no'].includes(lowered);
 };
 
-const containsBadWords = (content) => filter.isProfane(content || '');
+const censorBadWords = (content) => filter.clean(content || '');
 
 module.exports = {
   isBadWordsEnabled,
-  containsBadWords,
+  censorBadWords,
 };

@@ -29,6 +29,26 @@ const requireAccountToken = (req) => {
     if (!decoded || !decoded.accountId) {
       return { error: { status: 401, message: 'Token is invalid' } };
     }
+    if (decoded.type === '2fa-pending') {
+      return { error: { status: 401, message: 'Token is invalid' } };
+    }
+    return { token, decoded };
+  } catch (error) {
+    return { error: { status: 401, message: 'Token is invalid' } };
+  }
+};
+
+const requirePendingToken = (req) => {
+  const token = getAuthToken(req);
+  if (!token) {
+    return { error: { status: 400, message: 'Token is required' } };
+  }
+  ensureJwtSecret();
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.accountId || decoded.type !== '2fa-pending') {
+      return { error: { status: 401, message: 'Token is invalid' } };
+    }
     return { token, decoded };
   } catch (error) {
     return { error: { status: 401, message: 'Token is invalid' } };
@@ -39,4 +59,5 @@ module.exports = {
   ensureJwtSecret,
   getAuthToken,
   requireAccountToken,
+  requirePendingToken,
 };

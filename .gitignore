@@ -26,3 +26,8 @@ build/
 # OS files
 .DS_Store
 Thumbs.db
+
+.claude
+
+docs/
+otp-playground.js

@@ -196,7 +196,7 @@ const registerAccount = async (req, res) => {
     const account = await createAccount(identityId, username, passwordHash);
 
     const token = jwt.sign(
-      { accountId: account.id, identityId },
+      { accountId: account.id, identityId, isAdmin: false },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -237,8 +237,18 @@ const login = async (req, res) => {
     }
 
     ensureJwtSecret();
+
+    if (user.totp_enabled) {
+      const pendingToken = jwt.sign(
+        { type: '2fa-pending', accountId: user.id, identityId: user.identity_id, isAdmin: user.is_admin },
+        process.env.JWT_SECRET,
+        { expiresIn: '10m' }
+      );
+      return res.json({ requires2fa: true, pendingToken });
+    }
+
     const token = jwt.sign(
-      { accountId: user.id, identityId: user.identity_id },
+      { accountId: user.id, identityId: user.identity_id, isAdmin: user.is_admin },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -305,7 +315,7 @@ const switchAccount = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { accountId: account.id, identityId: account.identity_id },
+      { accountId: account.id, identityId: account.identity_id, isAdmin: account.is_admin },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
