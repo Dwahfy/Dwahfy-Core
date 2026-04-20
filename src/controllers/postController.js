@@ -117,6 +117,20 @@ const listPostsHandler = async (req, res) => {
   }
 };
 
+const getPostHandler = async (req, res) => {
+  try {
+    const postId = parseId(req.params.postId);
+    if (!postId) return res.status(400).json({ message: 'Valid post ID is required' });
+    const viewerId = getViewerAccountId(req);
+    const enabled = await resolveViewerCensorship(viewerId);
+    const post = await getPostWithCounts(postId);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+    return res.json({ post: censorPost(post, enabled) });
+  } catch (error) {
+    return res.status(500).json({ error: `Failed to get post: ${error.message}` });
+  }
+};
+
 const createReplyHandler = async (req, res) => {
   try {
     const auth = requireAccountToken(req);
@@ -232,6 +246,7 @@ const reactToPostHandler = async (req, res) => {
 module.exports = {
   createPostHandler,
   listPostsHandler,
+  getPostHandler,
   createReplyHandler,
   listRepliesHandler,
   reactToPostHandler,
