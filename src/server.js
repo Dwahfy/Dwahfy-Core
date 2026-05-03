@@ -1,4 +1,5 @@
-require('dotenv').config();
+const fs = require('fs');
+require('dotenv').config({ path: fs.existsSync('.env.local') ? '.env.local' : '.env' });
 
 const path = require('path');
 const express = require('express');
@@ -20,7 +21,8 @@ const twoFactorRoutes = require('./routes/twoFactor');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3001';
+const CORS_ORIGIN = (process.env.CORS_ORIGIN || 'http://localhost:3001')
+  .split(',').map(s => s.trim());
 app.use(cors({ origin: CORS_ORIGIN, credentials: true }));
 app.use(express.json());
 
