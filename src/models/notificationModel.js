@@ -1,11 +1,30 @@
 const { pool } = require('../config/db');
 
 const createNotification = async (recipientId, actorId, type, postId = null) => {
-  await pool.query(
+  const actorRes = await pool.query(
+    `SELECT a.username, p.avatar_url
+     FROM accounts a LEFT JOIN profiles p ON p.account_id = a.id
+     WHERE a.id = $1`,
+    [actorId]
+  );
+  const actor = actorRes.rows[0];
+  const result = await pool.query(
     `INSERT INTO notifications (recipient_id, actor_id, type, post_id)
-     VALUES ($1, $2, $3, $4)`,
+     VALUES ($1, $2, $3, $4)
+     RETURNING id, created_at`,
     [recipientId, actorId, type, postId]
   );
+  const row = result.rows[0];
+  return {
+    id: row.id,
+    type,
+    read: false,
+    created_at: row.created_at,
+    post_id: postId,
+    actor_id: actorId,
+    actor_username: actor?.username ?? null,
+    actor_avatar_url: actor?.avatar_url ?? null,
+  };
 };
 
 const listNotifications = async (accountId) => {

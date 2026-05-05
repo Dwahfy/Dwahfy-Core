@@ -8,6 +8,7 @@ const {
   getFollowingCount,
 } = require('../models/followModel');
 const { createNotification } = require('../models/notificationModel');
+const { getIo } = require('../socket/index');
 const jwt = require('jsonwebtoken');
 
 const getOptionalAccountId = (req) => {
@@ -36,7 +37,8 @@ const followHandler = async (req, res) => {
   const wasInserted = await followUser(auth.decoded.accountId, target.id);
   if (wasInserted) {
     try {
-      await createNotification(target.id, auth.decoded.accountId, 'follow');
+      const notification = await createNotification(target.id, auth.decoded.accountId, 'follow');
+      getIo().to(`user:${target.id}`).emit('notification:new', notification);
     } catch (err) {
       console.error('Failed to create follow notification:', err.message);
     }

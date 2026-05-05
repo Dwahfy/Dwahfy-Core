@@ -173,6 +173,7 @@ const setReaction = async (accountId, postId, reaction) => {
       [postId, accountId]
     );
 
+    let action;
     if (existing.rowCount === 0) {
       await client.query(
         `
@@ -181,10 +182,12 @@ const setReaction = async (accountId, postId, reaction) => {
       `,
         [postId, accountId, reaction]
       );
+      action = 'added';
     } else if (existing.rows[0].reaction === reaction) {
       await client.query('DELETE FROM post_reactions WHERE id = $1', [
         existing.rows[0].id,
       ]);
+      action = 'removed';
     } else {
       await client.query(
         `
@@ -194,10 +197,11 @@ const setReaction = async (accountId, postId, reaction) => {
       `,
         [reaction, existing.rows[0].id]
       );
+      action = 'changed';
     }
 
     await client.query('COMMIT');
-    return { success: true };
+    return { success: true, action };
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;
