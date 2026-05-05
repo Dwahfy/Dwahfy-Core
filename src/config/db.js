@@ -269,6 +269,10 @@ const initDb = async () => {
     CREATE INDEX IF NOT EXISTS idx_totp_backup_codes_account_id
       ON totp_backup_codes(account_id);
   `);
+  await pool.query(`
+    ALTER TABLE profiles
+    ADD COLUMN IF NOT EXISTS newsletter_subscribed BOOLEAN NOT NULL DEFAULT FALSE;
+  `);
   console.log('Postgres connected');
 };
 
