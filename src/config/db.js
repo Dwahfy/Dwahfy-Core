@@ -273,6 +273,40 @@ const initDb = async () => {
     ALTER TABLE profiles
     ADD COLUMN IF NOT EXISTS newsletter_subscribed BOOLEAN NOT NULL DEFAULT FALSE;
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS feature_flags (
+      id BIGSERIAL PRIMARY KEY,
+      key VARCHAR(100) UNIQUE NOT NULL,
+      enabled BOOLEAN NOT NULL DEFAULT false,
+      beta_only BOOLEAN NOT NULL DEFAULT false,
+      status VARCHAR(20) NOT NULL DEFAULT 'beta',
+      description TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  await pool.query(`
+    ALTER TABLE accounts
+    ADD COLUMN IF NOT EXISTS is_beta BOOLEAN NOT NULL DEFAULT FALSE;
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS banners (
+      id BIGSERIAL PRIMARY KEY,
+      message TEXT NOT NULL,
+      scope VARCHAR(20) NOT NULL DEFAULT 'landing',
+      preset VARCHAR(20) NOT NULL DEFAULT 'info',
+      bg_color VARCHAR(7),
+      text_color VARCHAR(7),
+      dismissible BOOLEAN NOT NULL DEFAULT true,
+      active BOOLEAN NOT NULL DEFAULT false,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  await pool.query(`
+    ALTER TABLE posts
+    ADD COLUMN IF NOT EXISTS gif_url TEXT;
+  `);
   console.log('Postgres connected');
 };
 
