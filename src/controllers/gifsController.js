@@ -6,8 +6,8 @@ const GIF_LIMIT = 24;
 const normalizeGif = (item) => ({
   id: String(item.id ?? item.slug ?? ''),
   title: item.title || item.slug || '',
-  url: item.images?.original?.url ?? item.url ?? item.gif_url ?? '',
-  preview_url: item.images?.fixed_height?.url ?? item.images?.original?.url ?? item.url ?? item.gif_url ?? '',
+  url: item.file?.hd?.gif?.url ?? item.file?.hd?.webp?.url ?? '',
+  preview_url: item.file?.hd?.webp?.url ?? item.file?.hd?.gif?.url ?? '',
 });
 
 const getTrending = async (req, res) => {
@@ -39,7 +39,7 @@ const getTrending = async (req, res) => {
       return res.status(502).json({ message: 'GIF service error' });
     }
 
-    return res.json((data.data || []).map(normalizeGif));
+    return res.json((data.data?.data || []).map(normalizeGif));
   } catch (error) {
     return res.status(500).json({ error: `Failed to fetch trending GIFs: ${error.message}` });
   }
@@ -77,7 +77,7 @@ const searchGifs = async (req, res) => {
       return res.status(502).json({ message: 'GIF service error' });
     }
 
-    return res.json((data.data || []).map(normalizeGif));
+    return res.json((data.data?.data || []).map(normalizeGif));
   } catch (error) {
     return res.status(500).json({ error: `Failed to search GIFs: ${error.message}` });
   }
