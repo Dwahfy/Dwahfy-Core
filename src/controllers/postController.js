@@ -84,6 +84,17 @@ const createPostHandler = async (req, res) => {
 
     const gifUrl = (req.body.gif_url || '').trim() || null;
 
+    if (gifUrl !== null) {
+      if (gifUrl.length > 2048) {
+        return res.status(400).json({ message: 'gif_url must be 2048 characters or fewer' });
+      }
+      try {
+        new URL(gifUrl);
+      } catch {
+        return res.status(400).json({ message: 'gif_url must be a valid URL' });
+      }
+    }
+
     // Store raw content — censorship is applied at read time
     const post = await createPost(auth.decoded.accountId, content, null, gifUrl);
     const fullPost = await getPostWithCounts(post.id);
@@ -161,6 +172,17 @@ const createReplyHandler = async (req, res) => {
     }
 
     const gifUrl = (req.body.gif_url || '').trim() || null;
+
+    if (gifUrl !== null) {
+      if (gifUrl.length > 2048) {
+        return res.status(400).json({ message: 'gif_url must be 2048 characters or fewer' });
+      }
+      try {
+        new URL(gifUrl);
+      } catch {
+        return res.status(400).json({ message: 'gif_url must be a valid URL' });
+      }
+    }
 
     // Store raw content — censorship is applied at read time
     const reply = await createPost(auth.decoded.accountId, content, parentPostId, gifUrl);
