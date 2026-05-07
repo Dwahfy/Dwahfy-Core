@@ -82,8 +82,10 @@ const createPostHandler = async (req, res) => {
       });
     }
 
+    const gifUrl = (req.body.gif_url || '').trim() || null;
+
     // Store raw content — censorship is applied at read time
-    const post = await createPost(auth.decoded.accountId, content, null);
+    const post = await createPost(auth.decoded.accountId, content, null, gifUrl);
     const fullPost = await getPostWithCounts(post.id);
     const enabled = await resolveViewerCensorship(auth.decoded.accountId);
     return res.status(201).json({ post: censorPost(fullPost, enabled) });
@@ -158,8 +160,10 @@ const createReplyHandler = async (req, res) => {
       });
     }
 
+    const gifUrl = (req.body.gif_url || '').trim() || null;
+
     // Store raw content — censorship is applied at read time
-    const reply = await createPost(auth.decoded.accountId, content, parentPostId);
+    const reply = await createPost(auth.decoded.accountId, content, parentPostId, gifUrl);
 
     if (parent.author_id !== auth.decoded.accountId) {
       try {
