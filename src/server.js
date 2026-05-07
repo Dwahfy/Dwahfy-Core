@@ -19,6 +19,9 @@ const userRoutes = require('./routes/users');
 const notificationRoutes = require('./routes/notifications');
 const gdprRoutes = require('./routes/gdpr');
 const twoFactorRoutes = require('./routes/twoFactor');
+const { publicFlagsRouter, adminFlagsRouter } = require('./routes/flags');
+const { publicBannerRouter, adminBannerRouter } = require('./routes/banner');
+const gifsRouter = require('./routes/gifs');
 const { initSocketServer } = require('./socket/index');
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -43,6 +46,11 @@ app.use('/notifications', notificationRoutes);
 app.use('/auth', gdprRoutes);
 app.use('/auth', twoFactorRoutes);
 app.use('/upload', uploadRoutes);
+app.use('/flags', publicFlagsRouter);
+app.use('/admin/flags', adminFlagsRouter);
+app.use('/banner', publicBannerRouter);
+app.use('/admin/banners', adminBannerRouter);
+app.use('/gifs', gifsRouter);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Server is running!' });
