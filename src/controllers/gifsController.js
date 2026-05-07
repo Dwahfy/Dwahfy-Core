@@ -1,6 +1,6 @@
 const { requireAccountToken } = require('../utils/authToken');
 
-const KLIPY_BASE = 'https://api.klipy.com/v2';
+const KLIPY_BASE = 'https://api.klipy.com/api/v1';
 const GIF_LIMIT = 24;
 
 const normalizeGif = (item) => ({
@@ -22,7 +22,7 @@ const getTrending = async (req, res) => {
       return res.status(500).json({ message: 'GIF service not configured' });
     }
 
-    const url = `${KLIPY_BASE}/gifs/trending?api_key=${encodeURIComponent(apiKey)}&limit=${GIF_LIMIT}`;
+    const url = `${KLIPY_BASE}/${encodeURIComponent(apiKey)}/gifs/trending?per_page=${GIF_LIMIT}&page=1`;
     const abortController = new AbortController();
     const timer = setTimeout(() => abortController.abort(), 7000);
     let response;
@@ -60,7 +60,7 @@ const searchGifs = async (req, res) => {
       return res.status(500).json({ message: 'GIF service not configured' });
     }
 
-    const url = `${KLIPY_BASE}/gifs/search?api_key=${encodeURIComponent(apiKey)}&q=${encodeURIComponent(q)}&limit=${GIF_LIMIT}`;
+    const url = `${KLIPY_BASE}/${encodeURIComponent(apiKey)}/gifs/search?q=${encodeURIComponent(q)}&per_page=${GIF_LIMIT}&page=1`;
     const abortController = new AbortController();
     const timer = setTimeout(() => abortController.abort(), 7000);
     let response;
