@@ -1,13 +1,13 @@
 const { pool } = require('../config/db');
 
-const createPost = async (authorId, contentText, parentPostId = null) => {
+const createPost = async (authorId, contentText, parentPostId = null, gifUrl = null) => {
   const result = await pool.query(
     `
-    INSERT INTO posts (author_id, content_text, parent_post_id)
-    VALUES ($1, $2, $3)
-    RETURNING id, author_id, content_text, parent_post_id, created_at, updated_at
+    INSERT INTO posts (author_id, content_text, parent_post_id, gif_url)
+    VALUES ($1, $2, $3, $4)
+    RETURNING id, author_id, content_text, gif_url, parent_post_id, created_at, updated_at
   `,
-    [authorId, contentText, parentPostId]
+    [authorId, contentText, parentPostId, gifUrl]
   );
   return result.rows[0];
 };
@@ -30,6 +30,7 @@ const getPostWithCounts = async (postId) => {
     SELECT
       posts.id,
       posts.content_text,
+      posts.gif_url,
       posts.parent_post_id,
       posts.created_at,
       posts.updated_at,
@@ -72,6 +73,7 @@ const listPosts = async (limit, author = null) => {
     SELECT
       posts.id,
       posts.content_text,
+      posts.gif_url,
       posts.parent_post_id,
       posts.created_at,
       posts.updated_at,
@@ -114,6 +116,7 @@ const listReplies = async (parentPostId, limit) => {
     SELECT
       posts.id,
       posts.content_text,
+      posts.gif_url,
       posts.parent_post_id,
       posts.created_at,
       posts.updated_at,
@@ -216,6 +219,7 @@ const listFollowingPosts = async (accountId, limit) => {
     SELECT
       posts.id,
       posts.content_text,
+      posts.gif_url,
       posts.parent_post_id,
       posts.created_at,
       posts.updated_at,
