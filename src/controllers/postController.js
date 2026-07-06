@@ -11,12 +11,13 @@ const { requireAccountToken } = require('../utils/authToken');
 const { isBadWordsEnabled, censorBadWords } = require('../utils/badWords');
 const { getBadWordsEnabledByAccountId } = require('../models/profileModel');
 const { createNotification } = require('../models/notificationModel');
+const { getIo } = require('../socket/index');
 
-const MAX_CONTENT_LENGTH = 1000;
+const MAX_CONTENT_LENGTH = 10000;
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 
-const normalizeContent = (content) => (content || '').trim();
+const normalizeContent = (content) => (content || '').trimEnd();
 
 const parseLimit = (value) => {
   const parsed = Number.parseInt(value, 10);
@@ -117,6 +118,20 @@ const listPostsHandler = async (req, res) => {
   }
 };
 
+const getPostHandler = async (req, res) => {
+  try {
+    const postId = parseId(req.params.postId);
+    if (!postId) return res.status(400).json({ message: 'Valid post ID is required' });
+    const post = await getPostWithCounts(postId);
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+    const viewerId = getViewerAccountId(req);
+    const enabled = await resolveViewerCensorship(viewerId);
+    return res.json({ post: censorPost(post, enabled) });
+  } catch (error) {
+    return res.status(500).json({ error: `Failed to get post: ${error.message}` });
+  }
+};
+
 const createReplyHandler = async (req, res) => {
   try {
     const auth = requireAccountToken(req);
@@ -148,7 +163,8 @@ const createReplyHandler = async (req, res) => {
 
     if (parent.author_id !== auth.decoded.accountId) {
       try {
-        await createNotification(parent.author_id, auth.decoded.accountId, 'reply', reply.id);
+        const notification = await createNotification(parent.author_id, auth.decoded.accountId, 'reply', reply.id);
+        getIo().to(`user:${parent.author_id}`).emit('notification:new', notification);
       } catch (err) {
         console.error('Failed to create reply notification:', err.message);
       }
@@ -217,6 +233,27 @@ const reactToPostHandler = async (req, res) => {
     }
 
     const post = await getPostWithCounts(postId);
+
+    try {
+      getIo().emit('post:reaction_updated', {
+        postId,
+        likeCount: post.like_count,
+        dislikeCount: post.dislike_count,
+      });
+    } catch {}
+
+    if (result.action === 'added' && reaction === 'like') {
+      const postData = await getPostById(postId);
+      if (postData && postData.author_id !== auth.decoded.accountId) {
+        try {
+          const notification = await createNotification(postData.author_id, auth.decoded.accountId, 'like', postId);
+          getIo().to(`user:${postData.author_id}`).emit('notification:new', notification);
+        } catch (err) {
+          console.error('Failed to create like notification:', err.message);
+        }
+      }
+    }
+
     return res.json({
       postId,
       likeCount: post.like_count,
@@ -232,6 +269,7 @@ const reactToPostHandler = async (req, res) => {
 module.exports = {
   createPostHandler,
   listPostsHandler,
+  getPostHandler,
   createReplyHandler,
   listRepliesHandler,
   reactToPostHandler,

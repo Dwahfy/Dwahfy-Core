@@ -1,6 +1,8 @@
-require('dotenv').config();
+const fs = require('fs');
+require('dotenv').config({ path: fs.existsSync('.env.local') ? '.env.local' : '.env' });
 
 const path = require('path');
+const { createServer } = require('http');
 const express = require('express');
 const cors = require('cors');
 const { initDb, closeDb, pool } = require('./config/db');
@@ -17,10 +19,12 @@ const userRoutes = require('./routes/users');
 const notificationRoutes = require('./routes/notifications');
 const gdprRoutes = require('./routes/gdpr');
 const twoFactorRoutes = require('./routes/twoFactor');
+const { initSocketServer } = require('./socket/index');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3001';
+const CORS_ORIGIN = (process.env.CORS_ORIGIN || 'http://localhost:3001')
+  .split(',').map(s => s.trim());
 app.use(cors({ origin: CORS_ORIGIN, credentials: true }));
 app.use(express.json());
 
@@ -72,7 +76,9 @@ const bootstrapAdmin = async () => {
 const start = async () => {
   await initDb();
   await bootstrapAdmin();
-  app.listen(PORT, () => {
+  const httpServer = createServer(app);
+  initSocketServer(httpServer);
+  httpServer.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 };

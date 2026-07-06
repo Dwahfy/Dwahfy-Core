@@ -237,6 +237,15 @@ const initDb = async () => {
       ON notifications(recipient_id, is_read);
   `);
   await pool.query(`
+    ALTER TABLE notifications
+    DROP CONSTRAINT IF EXISTS notifications_type_check;
+  `);
+  await pool.query(`
+    ALTER TABLE notifications
+    ADD CONSTRAINT notifications_type_check
+    CHECK (type IN ('follow', 'reply', 'like'));
+  `);
+  await pool.query(`
     ALTER TABLE accounts
     ADD COLUMN IF NOT EXISTS totp_secret TEXT;
   `);
