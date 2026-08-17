@@ -23,6 +23,8 @@ const {
   updatePassword,
   updateAccountIdentity,
 } = require('../models/accountModel');
+const { ensureProfile, setProfileBadge } = require('../models/profileModel');
+const { getBadgeBySlug, grantBadge } = require('../models/badgeModel');
 const {
   createEmailOtp,
   getLatestEmailOtp,
@@ -194,6 +196,19 @@ const registerAccount = async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
     const account = await createAccount(identityId, username, passwordHash);
+
+    if (process.env.BETA_MODE === 'true') {
+      try {
+        const betaBadge = await getBadgeBySlug('beta-user');
+        if (betaBadge) {
+          await grantBadge(account.id, betaBadge.id);
+          await ensureProfile(account.id, username);
+          await setProfileBadge(account.id, betaBadge.id);
+        }
+      } catch (error) {
+        console.error(`Failed to auto-grant beta badge: ${error.message}`);
+      }
+    }
 
     const token = jwt.sign(
       { accountId: account.id, identityId, isAdmin: false },

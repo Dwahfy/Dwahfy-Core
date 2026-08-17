@@ -89,4 +89,27 @@ const deleteAccount = async (req, res) => {
   }
 };
 
-module.exports = { listUsers, toggleAdmin, deleteAccount };
+const toggleBeta = async (req, res) => {
+  try {
+    const accountId = parseInt(req.params.accountId, 10);
+    if (!Number.isInteger(accountId)) {
+      return res.status(400).json({ message: 'Valid accountId is required' });
+    }
+
+    const result = await pool.query(
+      `UPDATE accounts SET is_beta = NOT is_beta WHERE id = $1
+       RETURNING id, username, is_beta`,
+      [accountId]
+    );
+
+    if (!result.rows[0]) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    return res.json({ user: result.rows[0] });
+  } catch (error) {
+    return res.status(500).json({ error: `Failed to toggle beta: ${error.message}` });
+  }
+};
+
+module.exports = { listUsers, toggleAdmin, deleteAccount, toggleBeta };

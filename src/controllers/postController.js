@@ -10,6 +10,7 @@ const {
 const { requireAccountToken } = require('../utils/authToken');
 const { isBadWordsEnabled, censorBadWords } = require('../utils/badWords');
 const { getBadWordsEnabledByAccountId } = require('../models/profileModel');
+const { getAccountByUsername } = require('../models/accountModel');
 const { createNotification } = require('../models/notificationModel');
 const { getIo } = require('../socket/index');
 
@@ -72,16 +73,6 @@ const createPostHandler = async (req, res) => {
       return res.status(auth.error.status).json({ message: auth.error.message });
     }
 
-    const content = normalizeContent(req.body.content);
-    if (!content) {
-      return res.status(400).json({ message: 'Post content is required' });
-    }
-    if (content.length > MAX_CONTENT_LENGTH) {
-      return res.status(400).json({
-        message: `Post content must be ${MAX_CONTENT_LENGTH} characters or fewer`,
-      });
-    }
-
     const gifUrl = (req.body.gif_url || '').trim() || null;
 
     if (gifUrl !== null) {
@@ -93,6 +84,16 @@ const createPostHandler = async (req, res) => {
       } catch {
         return res.status(400).json({ message: 'gif_url must be a valid URL' });
       }
+    }
+
+    const content = normalizeContent(req.body.content);
+    if (!content && !gifUrl) {
+      return res.status(400).json({ message: 'Post must have content or a GIF' });
+    }
+    if (content.length > MAX_CONTENT_LENGTH) {
+      return res.status(400).json({
+        message: `Post content must be ${MAX_CONTENT_LENGTH} characters or fewer`,
+      });
     }
 
     // Store raw content — censorship is applied at read time
@@ -122,7 +123,12 @@ const listPostsHandler = async (req, res) => {
     }
 
     const author = (req.query.author || '').trim().toLowerCase() || null;
-    const posts = await listPosts(limit, author);
+    let excludeId = null;
+    if (author) {
+      const authorAccount = await getAccountByUsername(author);
+      excludeId = authorAccount?.pinned_post_id || null;
+    }
+    const posts = await listPosts(limit, author, excludeId);
     return res.json({ posts: posts.map((p) => censorPost(p, enabled)), limit });
   } catch (error) {
     return res
@@ -161,16 +167,6 @@ const createReplyHandler = async (req, res) => {
     if (!parent) {
       return res.status(404).json({ message: 'Post not found' });
     }
-    const content = normalizeContent(req.body.content);
-    if (!content) {
-      return res.status(400).json({ message: 'Reply content is required' });
-    }
-    if (content.length > MAX_CONTENT_LENGTH) {
-      return res.status(400).json({
-        message: `Reply content must be ${MAX_CONTENT_LENGTH} characters or fewer`,
-      });
-    }
-
     const gifUrl = (req.body.gif_url || '').trim() || null;
 
     if (gifUrl !== null) {
@@ -182,6 +178,16 @@ const createReplyHandler = async (req, res) => {
       } catch {
         return res.status(400).json({ message: 'gif_url must be a valid URL' });
       }
+    }
+
+    const content = normalizeContent(req.body.content);
+    if (!content && !gifUrl) {
+      return res.status(400).json({ message: 'Reply must have content or a GIF' });
+    }
+    if (content.length > MAX_CONTENT_LENGTH) {
+      return res.status(400).json({
+        message: `Reply content must be ${MAX_CONTENT_LENGTH} characters or fewer`,
+      });
     }
 
     // Store raw content — censorship is applied at read time

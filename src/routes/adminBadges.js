@@ -7,11 +7,15 @@ const {
   deleteBadgeHandler,
   grantBadgeHandler,
   revokeBadgeHandler,
+  uploadBadgeImageHandler,
+  exportBadgesHandler,
 } = require('../controllers/adminBadgeController');
 
 const router = express.Router();
 
 router.use(requireAdminKey);
+router.post('/badges/upload-image', uploadBadgeImageHandler);
+router.get('/badges/export', exportBadgesHandler);
 router.get('/badges', listBadgesHandler);
 router.post('/badges', createBadgeHandler);
 router.patch('/badges/:badgeId', updateBadgeHandler);

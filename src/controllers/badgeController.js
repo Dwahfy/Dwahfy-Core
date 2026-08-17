@@ -27,6 +27,9 @@ const listBadgesHandler = async (req, res) => {
       slug: b.slug,
       name: b.name,
       imageUrl: b.image_url,
+      description: b.description,
+      rarity: b.rarity,
+      earnedAt: b.earned_at,
     }));
     return res.json({ badges });
   } catch (error) {

@@ -12,7 +12,7 @@ const getAuthToken = (req) => {
   if (header.startsWith('Bearer ')) {
     return header.slice('Bearer '.length).trim();
   }
-  return req.body.token || '';
+  return req.body?.token || '';
 };
 
 const requireAccountToken = (req) => {

@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/Dwahfy/Dwahfy-Core#readme",
   "dependencies": {
+    "archiver": "^8.0.0",
     "bad-words": "^3.0.4",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",

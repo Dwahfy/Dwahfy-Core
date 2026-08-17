@@ -4,6 +4,8 @@ require('dotenv').config({ path: fs.existsSync('.env.local') ? '.env.local' : '.
 const path = require('path');
 const { createServer } = require('http');
 const express = require('express');
+const helmet = require('helmet');
+const morgan = require('morgan');
 const cors = require('cors');
 const { initDb, closeDb, pool } = require('./config/db');
 const authRoutes = require('./routes/auth');
@@ -25,6 +27,9 @@ const gifsRouter = require('./routes/gifs');
 const { initSocketServer } = require('./socket/index');
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.use(helmet());
+app.use(morgan('combined'));
 
 const CORS_ORIGIN = (process.env.CORS_ORIGIN || 'http://localhost:3001')
   .split(',').map(s => s.trim());

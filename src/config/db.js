@@ -91,8 +91,20 @@ const initDb = async () => {
     );
   `);
   await pool.query(`
+    ALTER TABLE badges
+    ADD COLUMN IF NOT EXISTS description TEXT;
+  `);
+  await pool.query(`
+    ALTER TABLE badges
+    ADD COLUMN IF NOT EXISTS rarity TEXT;
+  `);
+  await pool.query(`
     ALTER TABLE profiles
     ADD COLUMN IF NOT EXISTS badge_id BIGINT;
+  `);
+  await pool.query(`
+    ALTER TABLE profiles
+    ADD COLUMN IF NOT EXISTS badge_icon_only BOOLEAN NOT NULL DEFAULT FALSE;
   `);
   await pool.query(`
     DO $$
@@ -306,6 +318,22 @@ const initDb = async () => {
   await pool.query(`
     ALTER TABLE posts
     ADD COLUMN IF NOT EXISTS gif_url TEXT;
+  `);
+  await pool.query(`
+    ALTER TABLE accounts
+    ADD COLUMN IF NOT EXISTS pinned_post_id BIGINT REFERENCES posts(id) ON DELETE SET NULL;
+  `);
+  await pool.query(`
+    ALTER TABLE profiles
+    ADD COLUMN IF NOT EXISTS banner_url TEXT;
+  `);
+  await pool.query(`
+    ALTER TABLE profiles
+    ADD COLUMN IF NOT EXISTS profile_color VARCHAR(7);
+  `);
+  await pool.query(`
+    ALTER TABLE profiles
+    ADD COLUMN IF NOT EXISTS profile_palette JSONB;
   `);
   console.log('Postgres connected');
 };

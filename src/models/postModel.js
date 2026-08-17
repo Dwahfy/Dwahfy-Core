@@ -65,9 +65,20 @@ const getPostWithCounts = async (postId) => {
   return result.rows[0] || null;
 };
 
-const listPosts = async (limit, author = null) => {
-  const params = author ? [limit, author] : [limit];
-  const authorFilter = author ? 'AND accounts.username = $2' : '';
+const listPosts = async (limit, author = null, excludeId = null) => {
+  const params = [limit];
+  let authorFilter = '';
+  let excludeFilter = '';
+
+  if (author) {
+    params.push(author);
+    authorFilter = `AND accounts.username = $${params.length}`;
+  }
+  if (excludeId) {
+    params.push(excludeId);
+    excludeFilter = `AND posts.id != $${params.length}`;
+  }
+
   const result = await pool.query(
     `
     SELECT
@@ -101,7 +112,7 @@ const listPosts = async (limit, author = null) => {
       FROM posts replies
       WHERE replies.parent_post_id = posts.id
     ) reply_counts ON true
-    WHERE posts.parent_post_id IS NULL ${authorFilter}
+    WHERE posts.parent_post_id IS NULL ${authorFilter} ${excludeFilter}
     ORDER BY posts.created_at DESC
     LIMIT $1
   `,
