@@ -19,6 +19,8 @@ const MAX_LIMIT = 100;
 
 const normalizeContent = (content) => (content || '').trimEnd();
 
+const normalizeGifUrl = (gifUrl) => (gifUrl || '').trim() || null;
+
 const parseLimit = (value) => {
   const parsed = Number.parseInt(value, 10);
   if (Number.isNaN(parsed) || parsed <= 0) {
@@ -73,7 +75,8 @@ const createPostHandler = async (req, res) => {
     }
 
     const content = normalizeContent(req.body.content);
-    if (!content) {
+    const gifUrl = normalizeGifUrl(req.body.gif_url);
+    if (!content && !gifUrl) {
       return res.status(400).json({ message: 'Post content is required' });
     }
     if (content.length > MAX_CONTENT_LENGTH) {
@@ -83,7 +86,7 @@ const createPostHandler = async (req, res) => {
     }
 
     // Store raw content — censorship is applied at read time
-    const post = await createPost(auth.decoded.accountId, content, null);
+    const post = await createPost(auth.decoded.accountId, content, null, gifUrl);
     const fullPost = await getPostWithCounts(post.id);
     const enabled = await resolveViewerCensorship(auth.decoded.accountId);
     return res.status(201).json({ post: censorPost(fullPost, enabled) });
@@ -149,7 +152,8 @@ const createReplyHandler = async (req, res) => {
       return res.status(404).json({ message: 'Post not found' });
     }
     const content = normalizeContent(req.body.content);
-    if (!content) {
+    const gifUrl = normalizeGifUrl(req.body.gif_url);
+    if (!content && !gifUrl) {
       return res.status(400).json({ message: 'Reply content is required' });
     }
     if (content.length > MAX_CONTENT_LENGTH) {
@@ -159,7 +163,7 @@ const createReplyHandler = async (req, res) => {
     }
 
     // Store raw content — censorship is applied at read time
-    const reply = await createPost(auth.decoded.accountId, content, parentPostId);
+    const reply = await createPost(auth.decoded.accountId, content, parentPostId, gifUrl);
 
     if (parent.author_id !== auth.decoded.accountId) {
       try {

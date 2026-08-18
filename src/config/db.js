@@ -121,6 +121,10 @@ const initDb = async () => {
     );
   `);
   await pool.query(`
+    ALTER TABLE posts
+    ADD COLUMN IF NOT EXISTS gif_url TEXT;
+  `);
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS post_reactions (
       id BIGSERIAL PRIMARY KEY,
       post_id BIGINT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
@@ -129,6 +133,32 @@ const initDb = async () => {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       UNIQUE (post_id, account_id)
+    );
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS feature_flags (
+      id BIGSERIAL PRIMARY KEY,
+      key TEXT NOT NULL UNIQUE,
+      enabled BOOLEAN NOT NULL DEFAULT FALSE,
+      beta_only BOOLEAN NOT NULL DEFAULT FALSE,
+      status TEXT NOT NULL DEFAULT 'beta' CHECK (status IN ('beta', 'released', 'permanent')),
+      description TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS banners (
+      id BIGSERIAL PRIMARY KEY,
+      message TEXT NOT NULL,
+      scope TEXT NOT NULL DEFAULT 'global' CHECK (scope IN ('landing', 'global')),
+      preset TEXT NOT NULL DEFAULT 'info' CHECK (preset IN ('info', 'success', 'warning', 'error', 'neutral')),
+      bg_color TEXT,
+      text_color TEXT,
+      dismissible BOOLEAN NOT NULL DEFAULT TRUE,
+      active BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
   await pool.query(`
