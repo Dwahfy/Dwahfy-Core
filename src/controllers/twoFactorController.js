@@ -22,7 +22,7 @@ const {
   getLatestEmailOtp,
   consumeEmailOtp,
 } = require('../models/otpModel');
-const { sendEmail } = require('../services/email');
+const { sendEmail, buildOtpEmail } = require('../services/email');
 
 const OTP_TTL_MS = 10 * 60 * 1000;
 
@@ -232,7 +232,12 @@ const recoverEmail = async (req, res) => {
     await sendEmail({
       to: identity.email,
       subject: 'Your Dwahfy 2FA recovery code',
-      text: `Your recovery code is ${otp}. It expires in 10 minutes.`,
+      text: `Your 2FA recovery code is ${otp}. It expires in 10 minutes.`,
+      html: buildOtpEmail({
+        heading: 'Two-factor recovery code',
+        otp,
+        description: 'Use this code to recover access to your Dwahfy account.',
+      }),
     });
 
     return res.json({ message: 'Recovery code sent to your email' });
@@ -340,6 +345,11 @@ const disableViaEmail = async (req, res) => {
       to: identity.email,
       subject: 'Disable 2FA on your Dwahfy account',
       text: `Your code to disable 2FA is ${otp}. It expires in 10 minutes.`,
+      html: buildOtpEmail({
+        heading: 'Disable two-factor authentication',
+        otp,
+        description: 'Enter this code to turn off two-factor authentication on your Dwahfy account.',
+      }),
     });
 
     return res.json({ message: 'Code sent to your email' });

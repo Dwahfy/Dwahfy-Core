@@ -1,0 +1,24 @@
+# Override for building core/web from source instead of pulling images.
+# Requires Dwahfy-Web checked out as a sibling directory next to Dwahfy-Core
+# (the build context has to span both repos since it builds both apps):
+#
+#   git clone git@github.com:Dwahfy/Dwahfy-Core.git
+#   git clone git@github.com:Dwahfy/Dwahfy-Web.git
+#   cd Dwahfy-Core
+#   docker compose -f docker-compose.yml -f docker-compose.build.yml up --build
+
+services:
+  core:
+    build:
+      context: ..
+      dockerfile: Dwahfy-Core/Dockerfile
+      target: core
+
+  web:
+    build:
+      context: ..
+      dockerfile: Dwahfy-Core/Dockerfile
+      target: web
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_BETA_MODE: ${NEXT_PUBLIC_BETA_MODE:-false}

@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const { sendEmail } = require('../services/email');
+const { sendEmail, buildOtpEmail } = require('../services/email');
 const { hitRateLimit, WINDOW_MS, MAX_ATTEMPTS } = require('../utils/rateLimit');
 const { blockToken } = require('../utils/tokenBlocklist');
 const {
@@ -73,8 +73,13 @@ const startSignup = async (req, res) => {
     await createEmailOtp(email, otpHash(otp), otpExpiresAt);
     await sendEmail({
       to: email,
-      subject: 'Your Dwahfy OTP Code',
-      text: `Your OTP is ${otp}. It expires in 10 minutes.`,
+      subject: 'Your Dwahfy verification code',
+      text: `Your verification code is ${otp}. It expires in 10 minutes.`,
+      html: buildOtpEmail({
+        heading: 'Your verification code',
+        otp,
+        description: 'Use the code below to continue signing in to Dwahfy.',
+      }),
     });
 
     return res.json({
@@ -410,8 +415,13 @@ const requestEmailChange = async (req, res) => {
 
     await sendEmail({
       to: newEmail,
-      subject: 'Confirm your new email',
-      text: `Your OTP is ${otp}. It expires in 10 minutes.`,
+      subject: 'Confirm your new Dwahfy email',
+      text: `Your confirmation code is ${otp}. It expires in 10 minutes.`,
+      html: buildOtpEmail({
+        heading: 'Confirm your new email',
+        otp,
+        description: 'Enter this code to confirm your new email address on Dwahfy.',
+      }),
     });
 
     return res.json({ message: 'OTP sent to new email.' });
@@ -503,7 +513,12 @@ const requestPasswordReset = async (req, res) => {
       await sendEmail({
         to: email,
         subject: 'Reset your Dwahfy password',
-        text: `Your OTP is ${otp}. It expires in 10 minutes.`,
+        text: `Your password reset code is ${otp}. It expires in 10 minutes.`,
+        html: buildOtpEmail({
+          heading: 'Reset your password',
+          otp,
+          description: 'Use this code to reset your Dwahfy password. If you didn\'t request a reset, no action is needed.',
+        }),
       });
     }
 

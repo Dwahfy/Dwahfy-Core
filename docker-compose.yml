@@ -1,19 +1,14 @@
-services:
-  app:
-    build: .
-    restart: unless-stopped
-    env_file:
-      - .env
-    ports:
-      - "8000:8000"
-    volumes:
-      - uploads:/app/uploads
-    networks:
-      - backend
-    depends_on:
-      postgres:
-        condition: service_healthy
+# Canonical stack: postgres + core + web, run from prebuilt images.
+#
+#   cp .env.example .env   # fill in secrets
+#   docker compose up -d
+#
+# To build core/web from this repo's source instead of pulling images, use:
+#   docker compose -f docker-compose.yml -f docker-compose.build.yml up --build
+#
+# To run a different frontend (e.g. your own fork), just point WEB_IMAGE at it.
 
+services:
   postgres:
     image: postgres:16
     mem_limit: 512m
@@ -21,15 +16,13 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: dwahfy_prod
-    ports:
-      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./scripts/db/postgres.conf:/etc/postgresql/postgresql.conf
     command: postgres -c config_file=/etc/postgresql/postgresql.conf
     networks:
-      - backend
+      - dwahfy
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d dwahfy_prod"]
@@ -38,8 +31,58 @@ services:
       retries: 5
       start_period: 10s
 
+  core:
+    image: ${CORE_IMAGE:-ghcr.io/dwahfy/dwahfy-core:latest}
+    restart: unless-stopped
+    environment:
+      PORT: 8000
+      NODE_ENV: production
+      UPLOADS_DIR: /app/uploads
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/dwahfy_prod
+      JWT_SECRET: ${JWT_SECRET}
+      OTP_SECRET: ${OTP_SECRET}
+      ADMIN_API_KEY: ${ADMIN_API_KEY}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      KLIPY_API_KEY: ${KLIPY_API_KEY}
+      APP_BASE_URL: ${APP_BASE_URL}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_SECURE: ${SMTP_SECURE}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: ${SMTP_FROM}
+      BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME}
+      BETA_MODE: ${BETA_MODE:-false}
+      BAD_WORDS_ENABLED: ${BAD_WORDS_ENABLED}
+    ports:
+      - "8000:8000"
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - dwahfy
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    # Dwahfy-Web is closed-source — bring your own frontend image here.
+    image: ${WEB_IMAGE:-your-registry/your-web:latest}
+    restart: unless-stopped
+    environment:
+      INTERNAL_API_URL: http://core:8000
+      ADMIN_API_KEY: ${ADMIN_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      BEEHIIV_API_KEY: ${BEEHIIV_API_KEY}
+      BEEHIIV_PUBLICATION_ID: ${BEEHIIV_PUBLICATION_ID}
+    ports:
+      - "3000:3000"
+    networks:
+      - dwahfy
+    depends_on:
+      - core
+
 networks:
-  backend:
+  dwahfy:
 
 volumes:
   postgres_data:

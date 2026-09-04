@@ -7,7 +7,7 @@ const ensureProfile = async (accountId, username) => {
     VALUES ($1, $2)
     ON CONFLICT (account_id)
     DO UPDATE SET display_name = profiles.display_name
-    RETURNING id, account_id, display_name, bio, avatar_url, bad_words_enabled, links, badge_id, created_at, updated_at
+    RETURNING id, account_id, display_name, bio, avatar_url, banner_url, bad_words_enabled, newsletter_subscribed, badge_icon_only, links, badge_id, created_at, updated_at
   `,
     [accountId, username]
   );
@@ -17,7 +17,7 @@ const ensureProfile = async (accountId, username) => {
 const getProfileByAccountId = async (accountId) => {
   const result = await pool.query(
     `
-    SELECT id, account_id, display_name, bio, avatar_url, bad_words_enabled, links, badge_id, created_at, updated_at
+    SELECT id, account_id, display_name, bio, avatar_url, banner_url, bad_words_enabled, newsletter_subscribed, badge_icon_only, links, badge_id, created_at, updated_at
     FROM profiles
     WHERE account_id = $1
   `,
@@ -44,11 +44,17 @@ const updateProfileByAccountId = async (
     displayName,
     bio,
     avatarUrl,
+    bannerUrlProvided,
+    bannerUrl,
     links,
     badgeId,
     badgeIdProvided,
     badWordsEnabled,
     badWordsEnabledProvided,
+    newsletterSubscribed,
+    newsletterSubscribedProvided,
+    badgeIconOnly,
+    badgeIconOnlyProvided,
   }
 ) => {
   const result = await pool.query(
@@ -60,9 +66,12 @@ const updateProfileByAccountId = async (
         bad_words_enabled = CASE WHEN $5 THEN $6 ELSE bad_words_enabled END,
         links = COALESCE($7, links),
         badge_id = CASE WHEN $8 THEN $9 ELSE badge_id END,
+        banner_url = CASE WHEN $10 THEN $11 ELSE banner_url END,
+        newsletter_subscribed = CASE WHEN $12 THEN $13 ELSE newsletter_subscribed END,
+        badge_icon_only = CASE WHEN $14 THEN $15 ELSE badge_icon_only END,
         updated_at = NOW()
     WHERE account_id = $1
-    RETURNING id, account_id, display_name, bio, avatar_url, bad_words_enabled, links, badge_id, created_at, updated_at
+    RETURNING id, account_id, display_name, bio, avatar_url, banner_url, bad_words_enabled, newsletter_subscribed, badge_icon_only, links, badge_id, created_at, updated_at
   `,
     [
       accountId,
@@ -74,6 +83,12 @@ const updateProfileByAccountId = async (
       links,
       badgeIdProvided,
       badgeId,
+      bannerUrlProvided,
+      bannerUrl,
+      newsletterSubscribedProvided,
+      newsletterSubscribed,
+      badgeIconOnlyProvided,
+      badgeIconOnly,
     ]
   );
   return result.rows[0] || null;
@@ -88,16 +103,22 @@ const getPublicProfileByUsername = async (username) => {
       profiles.display_name,
       profiles.bio,
       profiles.avatar_url,
+      profiles.banner_url,
       profiles.links,
       profiles.badge_id,
+      profiles.badge_icon_only,
       badges.slug AS badge_slug,
       badges.name AS badge_name,
       badges.image_url AS badge_image_url,
+      badges.description AS badge_description,
+      badges.rarity AS badge_rarity,
+      user_badges.granted_at AS badge_earned_at,
       profiles.created_at,
       profiles.updated_at
     FROM accounts
     LEFT JOIN profiles ON profiles.account_id = accounts.id
     LEFT JOIN badges ON badges.id = profiles.badge_id
+    LEFT JOIN user_badges ON user_badges.account_id = accounts.id AND user_badges.badge_id = profiles.badge_id
     WHERE accounts.username = $1
   `,
     [username]

@@ -12,7 +12,7 @@ Backend API for Dwahfy. This repo is intentionally separate from the frontend fo
 1) Copy env template:
 
 ```bash
-cp ex.env .env
+cp .env.example .env
 ```
 
 2) Start databases:
@@ -27,21 +27,27 @@ docker compose up -d postgres
 node src/server.js
 ```
 
-API will be available at `http://localhost:3000`.
+API will be available at `http://localhost:8000`.
 
 ## Quick start (full Docker)
 
-Build and run everything:
+Runs the canonical stack (postgres + core + web) from prebuilt images:
 
 ```bash
-docker compose up --build
+docker compose up -d
 ```
 
-API will be available at `http://localhost:3000`.
+To build core/web from source instead (requires `Dwahfy-Web` checked out as a sibling directory next to this repo):
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.build.yml up --build
+```
+
+API will be available at `http://localhost:8000`.
 
 ## Environment variables
 
-These are in `ex.env`:
+These are in [`.env.example`](.env.example):
 
 - `PORT` (default: 3000)
 - `DATABASE_URL` (Postgres connection string for local dev)
@@ -110,4 +116,4 @@ See `doc/roadmap.md`.
 
 ## Notes for frontend integration
 
-If the frontend runs on your host machine (separate repo), point it at `http://localhost:3000`. If you later containerize the frontend, use the backend service name `app:3000` inside Docker.
+If the frontend runs on your host machine, point it at `http://localhost:8000`. Inside Docker, use the backend service name `core:8000`.

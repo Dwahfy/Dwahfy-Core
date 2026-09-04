@@ -1,0 +1,36 @@
+name: Publish core image
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Dwahfy-Core
+        uses: actions/checkout@v4
+        with:
+          path: Dwahfy-Core
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push core image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dwahfy-Core/Dockerfile
+          target: core
+          push: true
+          tags: |
+            ghcr.io/dwahfy/dwahfy-core:latest
+            ghcr.io/dwahfy/dwahfy-core:${{ github.sha }}

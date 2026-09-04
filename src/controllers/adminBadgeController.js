@@ -13,11 +13,13 @@ const { getAccountByUsername } = require('../models/accountModel');
 const MAX_SLUG_LENGTH = 40;
 const MAX_NAME_LENGTH = 80;
 const MAX_IMAGE_URL_LENGTH = 500;
+const MAX_DESCRIPTION_LENGTH = 300;
+const VALID_RARITIES = ['common', 'rare', 'epic', 'beta'];
 
 const normalizeString = (value) =>
   typeof value === 'string' ? value.trim() : null;
 
-const validateBadge = ({ slug, name, imageUrl }) => {
+const validateBadge = ({ slug, name, imageUrl, description, rarity }) => {
   if (slug && slug.length > MAX_SLUG_LENGTH) {
     return `Slug must be ${MAX_SLUG_LENGTH} characters or fewer`;
   }
@@ -26,6 +28,12 @@ const validateBadge = ({ slug, name, imageUrl }) => {
   }
   if (imageUrl && imageUrl.length > MAX_IMAGE_URL_LENGTH) {
     return `Image URL must be ${MAX_IMAGE_URL_LENGTH} characters or fewer`;
+  }
+  if (description && description.length > MAX_DESCRIPTION_LENGTH) {
+    return `Description must be ${MAX_DESCRIPTION_LENGTH} characters or fewer`;
+  }
+  if (rarity && !VALID_RARITIES.includes(rarity)) {
+    return `Rarity must be one of: ${VALID_RARITIES.join(', ')}`;
   }
   return null;
 };
@@ -46,12 +54,14 @@ const createBadgeHandler = async (req, res) => {
     const slug = normalizeString(req.body.slug);
     const name = normalizeString(req.body.name);
     const imageUrl = normalizeString(req.body.imageUrl);
+    const description = normalizeString(req.body.description);
+    const rarity = normalizeString(req.body.rarity);
 
     if (!slug || !name) {
       return res.status(400).json({ message: 'slug and name are required' });
     }
 
-    const validationError = validateBadge({ slug, name, imageUrl });
+    const validationError = validateBadge({ slug, name, imageUrl, description, rarity });
     if (validationError) {
       return res.status(400).json({ message: validationError });
     }
@@ -61,7 +71,7 @@ const createBadgeHandler = async (req, res) => {
       return res.status(409).json({ message: 'Badge slug already exists' });
     }
 
-    const badge = await createBadge({ slug, name, imageUrl });
+    const badge = await createBadge({ slug, name, imageUrl, description, rarity });
     return res.status(201).json({ badge });
   } catch (error) {
     return res
@@ -80,12 +90,14 @@ const updateBadgeHandler = async (req, res) => {
     const slug = normalizeString(req.body.slug);
     const name = normalizeString(req.body.name);
     const imageUrl = normalizeString(req.body.imageUrl);
+    const description = normalizeString(req.body.description);
+    const rarity = normalizeString(req.body.rarity);
 
-    if (slug === null && name === null && imageUrl === null) {
+    if (slug === null && name === null && imageUrl === null && description === null && rarity === null) {
       return res.status(400).json({ message: 'No badge fields provided' });
     }
 
-    const validationError = validateBadge({ slug, name, imageUrl });
+    const validationError = validateBadge({ slug, name, imageUrl, description, rarity });
     if (validationError) {
       return res.status(400).json({ message: validationError });
     }
@@ -97,7 +109,7 @@ const updateBadgeHandler = async (req, res) => {
       }
     }
 
-    const badge = await updateBadge(badgeId, { slug, name, imageUrl });
+    const badge = await updateBadge(badgeId, { slug, name, imageUrl, description, rarity });
     if (!badge) {
       return res.status(404).json({ message: 'Badge not found' });
     }

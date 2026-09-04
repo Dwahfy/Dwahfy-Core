@@ -3,7 +3,7 @@ const { pool } = require('../config/db');
 const listBadges = async () => {
   const result = await pool.query(
     `
-    SELECT id, slug, name, image_url, created_at, updated_at
+    SELECT id, slug, name, image_url, description, rarity, created_at, updated_at
     FROM badges
     ORDER BY created_at ASC
   `
@@ -14,7 +14,7 @@ const listBadges = async () => {
 const getBadgeById = async (badgeId) => {
   const result = await pool.query(
     `
-    SELECT id, slug, name, image_url, created_at, updated_at
+    SELECT id, slug, name, image_url, description, rarity, created_at, updated_at
     FROM badges
     WHERE id = $1
   `,
@@ -23,30 +23,32 @@ const getBadgeById = async (badgeId) => {
   return result.rows[0] || null;
 };
 
-const createBadge = async ({ slug, name, imageUrl }) => {
+const createBadge = async ({ slug, name, imageUrl, description, rarity }) => {
   const result = await pool.query(
     `
-    INSERT INTO badges (slug, name, image_url)
-    VALUES ($1, $2, $3)
-    RETURNING id, slug, name, image_url, created_at, updated_at
+    INSERT INTO badges (slug, name, image_url, description, rarity)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING id, slug, name, image_url, description, rarity, created_at, updated_at
   `,
-    [slug, name, imageUrl]
+    [slug, name, imageUrl, description ?? null, rarity ?? null]
   );
   return result.rows[0];
 };
 
-const updateBadge = async (badgeId, { slug, name, imageUrl }) => {
+const updateBadge = async (badgeId, { slug, name, imageUrl, description, rarity }) => {
   const result = await pool.query(
     `
     UPDATE badges
     SET slug = COALESCE($2, slug),
         name = COALESCE($3, name),
         image_url = COALESCE($4, image_url),
+        description = COALESCE($5, description),
+        rarity = COALESCE($6, rarity),
         updated_at = NOW()
     WHERE id = $1
-    RETURNING id, slug, name, image_url, created_at, updated_at
+    RETURNING id, slug, name, image_url, description, rarity, created_at, updated_at
   `,
-    [badgeId, slug, name, imageUrl]
+    [badgeId, slug, name, imageUrl, description ?? null, rarity ?? null]
   );
   return result.rows[0] || null;
 };
@@ -66,7 +68,7 @@ const deleteBadge = async (badgeId) => {
 const getBadgeBySlug = async (slug) => {
   const result = await pool.query(
     `
-    SELECT id, slug, name, image_url, created_at, updated_at
+    SELECT id, slug, name, image_url, description, rarity, created_at, updated_at
     FROM badges
     WHERE slug = $1
   `,
@@ -97,7 +99,8 @@ const revokeBadge = async (accountId, badgeId) => {
 const listBadgesByAccount = async (accountId) => {
   const result = await pool.query(
     `
-    SELECT badges.id, badges.slug, badges.name, badges.image_url, badges.created_at, badges.updated_at
+    SELECT badges.id, badges.slug, badges.name, badges.image_url, badges.description, badges.rarity,
+           user_badges.granted_at AS earned_at, badges.created_at, badges.updated_at
     FROM badges
     JOIN user_badges ON user_badges.badge_id = badges.id
     WHERE user_badges.account_id = $1

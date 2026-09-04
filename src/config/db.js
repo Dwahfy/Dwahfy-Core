@@ -299,6 +299,30 @@ const initDb = async () => {
     CREATE INDEX IF NOT EXISTS idx_totp_backup_codes_account_id
       ON totp_backup_codes(account_id);
   `);
+  await pool.query(`
+    ALTER TABLE badges
+    ADD COLUMN IF NOT EXISTS description TEXT;
+  `);
+  await pool.query(`
+    ALTER TABLE badges
+    ADD COLUMN IF NOT EXISTS rarity TEXT;
+  `);
+  await pool.query(`
+    ALTER TABLE profiles
+    ADD COLUMN IF NOT EXISTS banner_url TEXT;
+  `);
+  await pool.query(`
+    ALTER TABLE profiles
+    ADD COLUMN IF NOT EXISTS newsletter_subscribed BOOLEAN NOT NULL DEFAULT FALSE;
+  `);
+  await pool.query(`
+    ALTER TABLE profiles
+    ADD COLUMN IF NOT EXISTS badge_icon_only BOOLEAN NOT NULL DEFAULT FALSE;
+  `);
+  await pool.query(`
+    ALTER TABLE accounts
+    ADD COLUMN IF NOT EXISTS is_beta BOOLEAN NOT NULL DEFAULT FALSE;
+  `);
   console.log('Postgres connected');
 };
 
