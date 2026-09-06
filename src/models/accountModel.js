@@ -30,7 +30,7 @@ const getAccountByUsername = async (username) => {
 const getAccountById = async (accountId) => {
   const result = await pool.query(
     `
-    SELECT accounts.id, accounts.username, identities.email,
+    SELECT accounts.id, accounts.username, accounts.is_admin, identities.email,
       identities.id AS identity_id
     FROM accounts
     JOIN identities ON identities.id = accounts.identity_id

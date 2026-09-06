@@ -65,8 +65,9 @@ services:
         condition: service_healthy
 
   web:
-    # Dwahfy-Web is closed-source — bring your own frontend image here.
-    image: ${WEB_IMAGE:-your-registry/your-web:latest}
+    # Defaults to the open-source Communuity-Web-UI — point WEB_IMAGE at
+    # your own fork/image in .env to swap frontends without editing this file.
+    image: ${WEB_IMAGE:-communuity-web-ui:local}
     restart: unless-stopped
     environment:
       INTERNAL_API_URL: http://core:8000

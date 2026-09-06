@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const OTPAuth = require('otpauth');
 const { requireAccountToken, requirePendingToken, ensureJwtSecret } = require('../utils/authToken');
+const { setAuthCookie } = require('../utils/authCookie');
 const { hitRateLimit } = require('../utils/rateLimit');
 const { getIdentityById } = require('../models/identityModel');
 const { getAccountById, getAccountPasswordById } = require('../models/accountModel');
@@ -204,6 +205,7 @@ const verify = async (req, res) => {
 
     await setTotpLastVerified(accountId);
     const token = issueFullJwt(accountId, identityId, isAdmin);
+    setAuthCookie(res, token);
 
     return res.json({
       message: 'Welcome back to Dwahfy',
@@ -277,6 +279,7 @@ const recoverEmailVerify = async (req, res) => {
     await consumeEmailOtp(record.id);
     const account = await getAccountById(accountId);
     const token = issueFullJwt(accountId, identityId, isAdmin);
+    setAuthCookie(res, token);
 
     return res.json({
       message: 'Welcome back to Dwahfy',
@@ -316,6 +319,7 @@ const recoverBackup = async (req, res) => {
     await markBackupCodeUsed(matchedId);
     const account = await getAccountById(accountId);
     const token = issueFullJwt(accountId, identityId, isAdmin);
+    setAuthCookie(res, token);
 
     return res.json({
       message: 'Welcome back to Dwahfy',
