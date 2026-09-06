@@ -101,6 +101,8 @@ const getProfileHandler = async (req, res) => {
 
     return res.json({
       profile: {
+        accountId: account.id,
+        isAdmin: account.is_admin,
         username: account.username,
         displayName: profile.display_name || account.username,
         bio: profile.bio,
@@ -239,6 +241,8 @@ const updateProfileHandler = async (req, res) => {
 
     return res.json({
       profile: {
+        accountId: account.id,
+        isAdmin: account.is_admin,
         username: account.username,
         displayName: profile.display_name || account.username,
         bio: profile.bio,

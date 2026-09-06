@@ -6,8 +6,10 @@ const { hitRateLimit, WINDOW_MS, MAX_ATTEMPTS } = require('../utils/rateLimit');
 const { blockToken } = require('../utils/tokenBlocklist');
 const {
   ensureJwtSecret,
+  getAuthToken,
   requireAccountToken,
 } = require('../utils/authToken');
+const { setAuthCookie, clearAuthCookie } = require('../utils/authCookie');
 const {
   upsertIdentityByEmail,
   getIdentityById,
@@ -205,6 +207,7 @@ const registerAccount = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
+    setAuthCookie(res, token);
 
     return res.status(201).json({
       message: 'Welcome to Dwahfy',
@@ -257,6 +260,7 @@ const login = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
+    setAuthCookie(res, token);
 
     return res.json({
       message: 'Welcome back to Dwahfy',
@@ -324,6 +328,7 @@ const switchAccount = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
+    setAuthCookie(res, token);
 
     return res.json({
       message: 'Switched account',
@@ -613,6 +618,7 @@ const logout = async (req, res) => {
     }
 
     blockToken(token, decoded.exp * 1000);
+    clearAuthCookie(res);
     return res.json({ message: 'Logged out' });
   } catch (error) {
     return res

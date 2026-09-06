@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { requireAccountToken } = require('../utils/authToken');
 const { blockToken } = require('../utils/tokenBlocklist');
+const { clearAuthCookie } = require('../utils/authCookie');
 const { getAccountById, getAccountPasswordById, deleteAccountById, countAccountsByIdentityId } = require('../models/accountModel');
 const { deleteIdentityById } = require('../models/identityModel');
 const { getProfileByAccountId } = require('../models/profileModel');
@@ -34,6 +35,7 @@ const deleteAccount = async (req, res) => {
 
     await deleteAccountById(accountId);
     blockToken(auth.token, auth.decoded.exp * 1000);
+    clearAuthCookie(res);
 
     const remaining = await countAccountsByIdentityId(identityId);
     if (remaining === 0) {

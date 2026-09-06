@@ -5,6 +5,7 @@ const path = require('path');
 const { createServer } = require('http');
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const { initDb, closeDb, pool } = require('./config/db');
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
@@ -32,6 +33,7 @@ const CORS_ORIGIN = (process.env.CORS_ORIGIN || 'http://localhost:3001')
   .split(',').map(s => s.trim());
 app.use(cors({ origin: CORS_ORIGIN, credentials: true }));
 app.use(express.json());
+app.use(cookieParser());
 
 app.use('/uploads', express.static(path.join('/app/uploads')));
 

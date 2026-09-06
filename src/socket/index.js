@@ -1,5 +1,6 @@
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
+const cookie = require('cookie');
 const { isTokenBlocked } = require('../utils/tokenBlocklist');
 
 let io = null;
@@ -14,7 +15,8 @@ const initSocketServer = (httpServer) => {
   });
 
   io.use((socket, next) => {
-    const token = socket.handshake.auth.token;
+    const cookies = cookie.parse(socket.handshake.headers.cookie || '');
+    const token = cookies.token;
     if (!token) return next(new Error('No token'));
     if (isTokenBlocked(token)) return next(new Error('Token revoked'));
     try {

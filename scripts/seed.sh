@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-CONTAINER="dwahfy-core-1"
+CONTAINER="dwahfy-core-postgres-1"
 
 if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER}$"; then
   echo "Error: container '${CONTAINER}' is not running."
