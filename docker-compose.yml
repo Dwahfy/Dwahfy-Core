@@ -8,6 +8,8 @@
 #
 # To run a different frontend (e.g. your own fork), just point WEB_IMAGE at it.
 
+name: dwahfy
+
 services:
   postgres:
     image: postgres:16
